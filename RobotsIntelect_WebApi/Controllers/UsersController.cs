@@ -30,14 +30,16 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Gets all users
+        /// Gets all users.
+        /// Only admins can acces this endpoint.
         /// </summary>
         /// <returns>List of users</returns>
-        [HttpGet]
         [Authorize(Roles = Role.Admin)]
+        [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetList()
         {
@@ -53,14 +55,17 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Get user by id
+        /// Get user by id.
+        /// Only admins can acces this endpoint.
         /// </summary>
         /// <param name="id">ID of user</param>
         /// <returns>Found user</returns>
+        [Authorize(Roles = Role.Admin)]
         [HttpGet("{id}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Get(string id)
         {
@@ -76,15 +81,18 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Create user
+        /// Create user.
+        /// Only admins can acces this endpoint.
         /// </summary>
         /// <param name="user">New user</param>
         /// <returns>Created user with resource path</returns>
+        [Authorize(Roles = Role.Admin)]
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(User), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Create([FromBody] User user)
         {
@@ -93,6 +101,7 @@ namespace RobotsIntelect_WebApi.Controllers
                 return BadRequest("Empty request body");
             }
 
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
             _userRepository.InsertOne(user);
 
             var path = $"{Request.Path}/{user.Id.ToString()}";
@@ -102,16 +111,19 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Update user
+        /// Update user.
+        /// Only admins can acces this endpoint.
         /// </summary>
         /// <param name="id">ID of user</param>
         /// <param name="user">New updated user</param>
         /// <returns>Updated user</returns>
+        [Authorize(Roles = Role.Admin)]
         [HttpPut("{id}")]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Update(string id, [FromBody] User user)
         {
@@ -125,6 +137,16 @@ namespace RobotsIntelect_WebApi.Controllers
                 return NotFound("Entry not found");
             }
 
+            var oldUser = _userRepository.FindById(id);
+            if (user.PasswordHash == null || user.PasswordHash.Length == 0)
+            {
+                user.PasswordHash = oldUser.PasswordHash;
+            }
+            else
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+            }
+
             user.Id = new ObjectId(id);
             _userRepository.ReplaceOne(user);
 
@@ -133,14 +155,17 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Delete user by ID
+        /// Delete user by ID.
+        /// Only admins can acces this endpoint.
         /// </summary>
         /// <param name="id">ID of user</param>
         /// <returns>Deleted user</returns>
+        [Authorize(Roles = Role.Admin)]
         [HttpDelete("{id}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(User), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Delete(string id)
         {

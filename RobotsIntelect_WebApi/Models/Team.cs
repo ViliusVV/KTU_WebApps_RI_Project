@@ -13,7 +13,7 @@ namespace RobotsIntelect_WebApi.Models
         public string Name { get; set; }
         public string City { get; set; }
         public string Represents { get; set; }
-        public List<string> TeamMembers { get; set; }
-        public List<string> Robots { get; set; }
+        public List<string> TeamMembers { get; set; } = new List<string>(); // IDs only
+        public List<string> Robots { get; set; } = new List<string>(); // IDs only
     }
 }

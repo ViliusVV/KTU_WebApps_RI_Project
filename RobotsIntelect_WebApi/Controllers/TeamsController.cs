@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using RobotsIntelect_WebApi.Models;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace RobotsIntelect_WebApi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class TeamsController : ControllerBase
@@ -24,9 +26,11 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Gets all users
+        /// Gets all teams.
+        /// All user can access this endpoint.
         /// </summary>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(IEnumerable<Team>), StatusCodes.Status200OK)]
@@ -45,10 +49,12 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Get user by id
+        /// Get team by id.
+        /// All user can access this endpoint.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet("{id}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Team), StatusCodes.Status200OK)]
@@ -67,15 +73,19 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Create user
+        /// Create team.
+        /// Only Admin or referee can acces this endpoint.
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
+        [Authorize(Roles = Role.AdminOrReferee)]
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Team), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Create([FromBody] Team user)
         {
             if(user == null)
@@ -92,16 +102,20 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Update user
+        /// Update team.
+        /// Only Admin or referee can acces this endpoint.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="user"></param>
         /// <returns></returns>
+        [Authorize(Roles = Role.AdminOrReferee)]
         [HttpPut("{id}")]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Team), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Update(string id, [FromBody] Team user)
         {
             if(user == null)
@@ -122,14 +136,18 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Delete user by id
+        /// Delete team by id.
+        /// Only Admin or referee can acces this endpoint.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [Authorize(Roles = Role.AdminOrReferee)]
         [HttpDelete("{id}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Team), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Delete(string id)
         {
             var user = _teamsRepository.FindById(id);

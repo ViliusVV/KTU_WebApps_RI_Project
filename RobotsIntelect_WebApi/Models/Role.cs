@@ -9,6 +9,9 @@ namespace RobotsIntelect_WebApi.Models
     {
         public const string Admin = "Admin";
         public const string Referee = "Referee";
+        public const string Sensor = "Sensor";
         public const string Guest = "Guest";
+
+        public const string AdminOrReferee = "Admin, Referee";
     }
 }

@@ -22,14 +22,26 @@ namespace RobotsIntelect_WebApi.Controllers
         private readonly IMongoRepository<User> _userRepository;
         private IAuthService _authService;
 
+
         public AuthController(IMongoRepository<User> userRepository, IAuthService authService)
         {
             _userRepository = userRepository;
             _authService = authService;
         }
 
+
+        /// <summary>
+        /// Authenticate/login user, responds with token on successfull authentication. 
+        /// All users can access this endpoint.
+        /// </summary>
+        /// <param name="model">Authentication info needed for login.</param>
+        /// <returns>JWT token and refresh token.</returns>
         [AllowAnonymous]
-        [HttpPost("Authenticate")]
+        [HttpPost("authenticate")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(AuthenticateResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public IActionResult Authenticate([FromBody] AuthenticateRequest model)
         {
             var response = _authService.Authenticate(model, IpAddress());
@@ -42,13 +54,21 @@ namespace RobotsIntelect_WebApi.Controllers
             return Ok(response);
         }
 
+
+        /// <summary>
+        /// Authenticates user using refresh token.
+        /// All users can access this endpoint.
+        /// </summary>
+        /// <returns>Returns new JWT and refresh tokens</returns>
         [AllowAnonymous]
-        [Consumes(MediaTypeNames.Application.Json)]
-        [HttpPost("RefreshToken")]
+        [HttpPost("refreshToken")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(AuthenticateResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public IActionResult RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var response = _authService.RefreshToken(refreshToken, IpAddress());
+            var response = _authService.AuthenticateSensor(refreshToken, IpAddress());
 
             if (response == null)
                 return Unauthorized(new { message = "Invalid token" });
@@ -58,11 +78,49 @@ namespace RobotsIntelect_WebApi.Controllers
             return Ok(response);
         }
 
-        [HttpPost("RevokeToken")]
-        public IActionResult RevokeToken([FromForm] RevokeTokenRequest model)
+
+
+        /// <summary>
+        /// Authenticates sensor using api key (refresh token)
+        /// All users can access this endpoint.
+        /// </summary>
+        /// <returns>Returns new JWT and refresh tokens</returns>
+        [AllowAnonymous]
+        [HttpPost("sensorAuth")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(AuthenticateResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        public IActionResult SensorAuthentication()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            var response = _authService.AuthenticateSensor(refreshToken, IpAddress());
+
+            if (response == null)
+                return Unauthorized(new { message = "Invalid token" });
+
+            SetTokenCookie(response.RefreshToken);
+
+            return Ok(response);
+        }
+
+
+        /// <summary>
+        /// Revokes/invalidates refresh token. 
+        /// Only authenticated users can accesss this endpoint.
+        /// </summary>
+        /// <param name="model">Token to revoke</param>
+        /// <returns>Confirmation/failure message</returns>
+        [Authorize]
+        [HttpPost("revokeToken")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
+        public IActionResult RevokeToken([FromBody] RevokeTokenRequest model)
         {
             // accept token from request body or cookie
-            var token = model.Token ?? Request.Cookies["refreshToken"];
+            var token = model.Token;
 
             if (string.IsNullOrEmpty(token))
                 return BadRequest(new { message = "Token is required" });
@@ -75,17 +133,51 @@ namespace RobotsIntelect_WebApi.Controllers
             return Ok(new { message = "Token revoked" });
         }
 
-        [HttpGet("{id}/RefreshTokens")]
+
+        /// <summary>
+        /// Revokes/invalidates currently used refresh token. 
+        /// Only authenticated users can accesss this endpoint.
+        /// </summary>
+        /// <param name="model">Token to revoke</param>
+        /// <returns>Confirmation/failure message</returns>
+        [Authorize]
+        [HttpPost("revokeCurrentToken")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
+        public IActionResult RevokeCurrentTokenToken()
+        {
+            var token =  Request.Cookies["refreshToken"];
+            return RevokeToken(new RevokeTokenRequest() { Token = token});
+        }
+
+        /// <summary>
+        /// List all stored refresh tokens.
+        /// Only authenticated users can accesss this endpoint.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("{id}/refreshTokens")]
+        [Produces(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(List<RefreshToken>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         public IActionResult GetRefreshTokens(string id)
         {
             var user = _authService.GetById(id);
             if (user == null) return NotFound();
 
+            if (user.RefreshTokens.Count == 0) return NoContent();
+
             return Ok(user.RefreshTokens);
         }
 
-        // Helper methods
 
+        // ======== Helper methods =========
+
+        // Set refresh cookie
         private void SetTokenCookie(string token)
         {
             var cookieOptions = new CookieOptions
@@ -96,6 +188,7 @@ namespace RobotsIntelect_WebApi.Controllers
             Response.Cookies.Append("refreshToken", token, cookieOptions);
         }
 
+        // Get client/request IP
         private string IpAddress()
         {
             if (Request.Headers.ContainsKey("X-Forwarded-For"))

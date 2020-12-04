@@ -14,7 +14,7 @@ namespace RobotsIntelect_WebApi.Models
         public string Name { get; set; }
         public string Type { get; set; }
 
-        public List<LapTime> LapTimes { get; set; }
+        public List<LapTime> LapTimes { get; set; } = new List<LapTime>();
 
     }
 }

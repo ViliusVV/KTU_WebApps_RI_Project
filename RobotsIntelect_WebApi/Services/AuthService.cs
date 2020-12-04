@@ -17,33 +17,34 @@ namespace RobotsIntelect_WebApi.Services
     public class AuthService : IAuthService
     {
         private readonly IMongoRepository<User> _userRepository;
+        private readonly IMongoRepository<LapSensor> _sensorRepository;
         private readonly AppSettings _appSettings;
 
-        public AuthService(IMongoRepository<User> userRepository, IOptions<AppSettings> appSettings)
+        public AuthService(IMongoRepository<User> userRepository, IMongoRepository<LapSensor> sensorRepository, IOptions<AppSettings> appSettings)
         {
             _userRepository = userRepository;
+            _sensorRepository = sensorRepository;
             _appSettings = appSettings.Value;
         }
 
         public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
         {
-            // TODO: Implement hash
-            string hashedPassword = model.Password;
-            var usrs = _userRepository.AsQueryable().ToList();
-            var user =  _userRepository.AsQueryable().SingleOrDefault(x => x.Username == model.Username && x.PasswordHash == hashedPassword);
+            var user =  _userRepository.AsQueryable().SingleOrDefault(x => x.Username == model.Username);
 
-            // return null if user not found
             if (user == null) return null;
 
-            // authentication successful so generate jwt and refresh tokens
+            bool verified = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
+
+            if (!verified) return null;
+
+
+            // Generate tokens
             var jwtToken = generateJwtToken(user);
             var refreshToken = generateRefreshToken(ipAddress);
 
-            // save refresh token
+            // Save refresh token
 
-            // TODO: Make shure this is correct
             user.RefreshTokens.Add(refreshToken);
-
             _userRepository.ReplaceOne(user);
 
             return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
@@ -52,7 +53,6 @@ namespace RobotsIntelect_WebApi.Services
         public AuthenticateResponse RefreshToken(string token, string ipAddress)
         {
             var user = _userRepository.AsQueryable().SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
-            var usrs = _userRepository.AsQueryable().ToList();
             // return null if no user found with token
             if (user == null) return null;
 
@@ -76,19 +76,30 @@ namespace RobotsIntelect_WebApi.Services
             return new AuthenticateResponse(user, jwtToken, newRefreshToken.Token);
         }
 
+
+        public AuthenticateResponse AuthenticateSensor(string token, string ipAddress)
+        {
+            var sensor = _sensorRepository.AsQueryable().SingleOrDefault(s => s.ApiKey.Token == token);
+
+            if (sensor == null) return null;
+
+
+            var fakeUser = new User() { Name = sensor.SensorName, Role = Role.Sensor, Id = sensor.Id};
+            var jwtToken = generateJwtToken(fakeUser);
+
+            return new AuthenticateResponse(fakeUser, jwtToken, token);
+        }
+
         public bool RevokeToken(string token, string ipAddress)
         {
             var user = _userRepository.AsQueryable().SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
             
-            // return false if no user found with token
             if (user == null) return false;
 
             var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
-            // return false if token is not active
             if (!refreshToken.IsActive) return false;
 
-            // revoke token and save
             refreshToken.Revoked = DateTime.UtcNow;
             refreshToken.RevokedByIp = ipAddress;
 
@@ -125,7 +136,7 @@ namespace RobotsIntelect_WebApi.Services
             return tokenHandler.WriteToken(token);
         }
 
-        private RefreshToken generateRefreshToken(string ipAddress)
+        public RefreshToken generateRefreshToken(string ipAddress)
         {
             using(var rngCryptoServiceProvider = new RNGCryptoServiceProvider())
             {

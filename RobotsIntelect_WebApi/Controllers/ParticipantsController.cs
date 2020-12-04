@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using RobotsIntelect_WebApi.Models;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace RobotsIntelect_WebApi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ParticipantsController : ControllerBase
@@ -24,9 +26,11 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Gets all participants
+        /// Gets all participants.
+        /// All user can access this endpoint.
         /// </summary>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(IEnumerable<Participant>), StatusCodes.Status200OK)]
@@ -45,10 +49,12 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Get participant by id
+        /// Get participant by id.
+        /// All user can access this endpoint.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet("{id}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Participant), StatusCodes.Status200OK)]
@@ -67,15 +73,19 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Create participant
+        /// Create participant.
+        /// Only Admin or referee can acces this endpoint.
         /// </summary>
         /// <param name="participant"></param>
         /// <returns></returns>
+        [Authorize(Roles = Role.AdminOrReferee)]
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Participant), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Create([FromBody] Participant participant)
         {
             if(participant == null)
@@ -92,16 +102,20 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Update participant
+        /// Update participant.
+        /// Only Admin or referee can acces this endpoint.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="participant"></param>
         /// <returns></returns>
+        [Authorize(Roles = Role.AdminOrReferee)]
         [HttpPut("{id}")]
         [Consumes(MediaTypeNames.Application.Json)]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Participant), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Update(string id, [FromBody] Participant participant)
         {
             if(participant == null)
@@ -122,14 +136,18 @@ namespace RobotsIntelect_WebApi.Controllers
 
 
         /// <summary>
-        /// Delete participant by id
+        /// Delete participant by id.
+        /// Only Admin or referee can acces this endpoint.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [Authorize(Roles = Role.AdminOrReferee)]
         [HttpDelete("{id}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Participant), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Delete(string id)
         {
             var participant = _participantRepository.FindById(id);

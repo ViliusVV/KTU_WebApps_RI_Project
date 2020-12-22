@@ -1,20 +1,22 @@
 <template>
-    <div>
-        <div class="alert alert-info">
-            Username: test<br />
-            Password: test
-        </div>
-    </div>
-</template>
+  <v-container fill-height fluid>
+    <v-row align="center"
+        justify="center">
+        <v-col>  
+          <v-card
+            class="mx-auto image-container-card"
+            max-width="1000px"
+          >
+            <v-card-title>
+              RI flyer
+            </v-card-title>
 
-<script>
-export default {
-    data () {
-        return {
-            username: '',
-            password: '',
-            submitted: false
-        }
-    }
-};
-</script>
+            <v-img
+              class="ri-flyer-image"
+              :src="require('../assets/ri-card.jpg')"
+            />
+          </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>

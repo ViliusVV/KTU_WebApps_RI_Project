@@ -1,7 +1,7 @@
 import { Config } from '../helpers/config';
 import { handleResponse, requestOptions } from '../helpers/utils';
 
-export const participantService = {
+export const robotService = {
     getAll,
     getById,
     create,
@@ -10,29 +10,29 @@ export const participantService = {
 };
 
 function getAll() {
-    return fetch(`${Config.apiUrl}/participants`, requestOptions.get())
+    return fetch(`${Config.apiUrl}/robots`, requestOptions.get())
         .then(handleResponse);
 }
 
 function getById(id) {
-    return fetch(`${Config.apiUrl}/participants/${id}`, requestOptions.get())
+    return fetch(`${Config.apiUrl}/robots/${id}`, requestOptions.get())
         .then(handleResponse);
 }
 
-function create(participant){
-    clearIds(participant);
-    return fetch(`${Config.apiUrl}/participants/`, requestOptions.post(participant))
+function create(robot){
+    clearIds(robot);
+    return fetch(`${Config.apiUrl}/robots/`, requestOptions.post(robot))
     .then(handleResponse);
 }
 
-function update(id, participant){
-    clearIds(participant);
-    return fetch(`${Config.apiUrl}/participants/${id}`, requestOptions.put(participant))
+function update(id, robot){
+    clearIds(robot);
+    return fetch(`${Config.apiUrl}/robots/${id}`, requestOptions.put(robot))
     .then(handleResponse);
 }
 
 function deleteItem(id){
-    return fetch(`${Config.apiUrl}/participants/${id}`, requestOptions.delete())
+    return fetch(`${Config.apiUrl}/robots/${id}`, requestOptions.delete())
     .then(handleResponse);
 }
 

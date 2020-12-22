@@ -25,7 +25,7 @@ function create(team){
     .then(handleResponse);
 }
 
-function update(id, participant){
+function update(id, team){
     clearIds(team);
     return fetch(`${Config.apiUrl}/teams/${id}`, requestOptions.put(team))
     .then(handleResponse);

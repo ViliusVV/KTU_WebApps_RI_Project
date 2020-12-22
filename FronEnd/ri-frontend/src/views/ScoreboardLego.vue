@@ -7,12 +7,12 @@
     <template v-slot:top>
       <v-toolbar flat>
         <!-- TABLE TITLE -->
-        <v-toolbar-title>Advanced LineFollower Scoreboard</v-toolbar-title>
+        <v-toolbar-title>LEGO LineFollower Scoreboard</v-toolbar-title>
         <v-divider class="mx-4" inset vertical></v-divider>
         <v-spacer></v-spacer>
       </v-toolbar>
     </template>
-      <template v-slot:[`item.place`]="{ item }">
+    <template v-slot:[`item.place`]="{ item }">
       <v-chip
           class="ma-2"
           :color="getColor(item)"
@@ -24,11 +24,7 @@
           <div>{{item.place}}</div>
       </v-chip>
       <div v-show="item.place > 3">{{item.place}}</div>
-  </template>
-    <!-- <template v-slot:[`item.actions`]="{ item }">
-      <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
-      <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
-    </template> -->
+   </template>
     <template v-slot:no-data>
       <v-btn color="primary" @click="initialize"> Reset </v-btn>
     </template>
@@ -97,14 +93,13 @@ export default {
           if(robot.lapTimes[2] !== undefined){
             entry.round3 = robot.lapTimes[2].timeElapsedMs
           }
-          if(robot.type == "Advanced"){
+          if(robot.type == "LEGO"){
             this.times.push(entry);
             this.sortTimeEntries(this.times);
           }
         });
       });
     },
-
     getColor(item){
       if(item.place === 1){
         return "yellow"
@@ -118,7 +113,6 @@ export default {
         return "#cd7f32"
       }
     },
-
     sortTimeEntries(entries){
       entries.sort(this.compareTimeEntry)
 

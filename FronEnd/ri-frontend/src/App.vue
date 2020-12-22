@@ -35,14 +35,16 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app>
+    <v-app-bar app class="header">
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
 
       <v-toolbar-title>Robots-Intelect Dashboard</v-toolbar-title>
+      <div v-if="isLoggedIn" class="name-role">
+        {{currentUser.name}} {{currentUser.surname}} - {{currentUser.role}}
+      </div>
       <v-spacer></v-spacer>
       <v-btn
           color="primary"
-          dark
           to="/auth" 
           v-show="!isLoggedIn"
         >
@@ -50,7 +52,6 @@
       </v-btn>
       <v-btn
           color="primary"
-          dark
           @click="logout"
           v-show="isLoggedIn"
         >
@@ -64,10 +65,8 @@
 
     <v-bottom-navigation
       absolute
-      hide-on-scroll
       horizontal
       class="footer"
-      scroll-target="#hide-on-scroll-example"
       style="z-index: 1000"
     >
       <v-btn
@@ -105,7 +104,8 @@ export default {
     isLoggedIn: false,
     items: [
           { title: 'Main page', icon: 'mdi-home', to: '/', },
-          { title: 'Scoreboard', icon: 'mdi-counter', to: '/scoreboard' },
+          { title: 'Scoreboard Advanced', icon: 'mdi-counter', to: '/scoreboard' },
+          { title: 'Scoreboard LEGO', icon: 'mdi-counter', to: '/scoreboardlego' },
           { title: 'Users', icon: 'mdi-account-box-multiple', to: '/users', auth: [Role.Admin]},
           { title: 'Participants', icon: 'mdi-account-multiple', to: '/participants', auth: [Role.Admin, Role.Referee]},
           { title: 'Teams', icon: 'mdi-hexagon-multiple', to: '/teams', auth: [Role.Admin, Role.Referee]},

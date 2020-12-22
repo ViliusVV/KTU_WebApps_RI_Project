@@ -46,6 +46,11 @@ const routes = [
     name: 'Scoreboard',
     component: views.Scoreboard,
   },
+  {
+    path: '/scoreboardlego',
+    name: 'ScoreboardLego',
+    component: views.ScoreboardLego,
+  },
   { 
     path: '/auth', 
     component: views.LoginPage 

@@ -13,7 +13,6 @@ using RobotsIntelect_WebApi.Repository.Interfaces;
 
 namespace RobotsIntelect_WebApi.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class RobotsController : ControllerBase

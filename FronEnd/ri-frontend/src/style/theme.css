@@ -1,6 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
+html, body, html * {
+    font-family: 'Roboto', sans-serif !important;
+}
+
 .footer {
     background: lightskyblue !important;
 }
+
+.header {
+    background: lightslategrey !important;
+}
+
 
 .image-container-card {
     max-width: 1000px;
@@ -17,3 +28,21 @@
 .content-margin{
     margin:25px;
 }
+
+
+.name-role{
+    margin-left: 50px;
+    border-radius: 12px;
+    padding: 4px
+}
+
+.header .name-role {
+    background: dodgerblue;
+}
+
+
+@media only screen and (max-width: 1000px) {
+    .name-role {
+      display: none;
+    }
+  }

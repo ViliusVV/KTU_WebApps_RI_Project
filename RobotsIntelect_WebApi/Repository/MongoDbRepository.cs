@@ -58,7 +58,16 @@ namespace RobotsIntelect_WebApi.Repository
 
         public virtual TDocument FindById(string id)
         {
-            var objectId = new ObjectId(id);
+            ObjectId objectId;
+            try
+            {
+                objectId = new ObjectId(id);
+            }
+            catch (Exception e)
+            {
+                return default(TDocument);
+            }
+
             var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, objectId);
             return _collection.Find(filter).SingleOrDefault();
         }
@@ -122,11 +131,22 @@ namespace RobotsIntelect_WebApi.Repository
             return Task.Run(() => _collection.FindOneAndDeleteAsync(filterExpression));
         }
 
-        public void DeleteById(string id)
+        public bool DeleteById(string id)
         {
-            var objectId = new ObjectId(id);
+            ObjectId objectId;
+            try
+            {
+                objectId = new ObjectId(id);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
+
             var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, objectId);
             _collection.FindOneAndDelete(filter);
+            return true;
         }
 
         public Task DeleteByIdAsync(string id)

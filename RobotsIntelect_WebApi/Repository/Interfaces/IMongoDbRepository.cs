@@ -26,8 +26,6 @@ namespace RobotsIntelect_WebApi.Repository.Interfaces
 
         bool Exists(string id);
 
-        Task<TDocument> FindByIdAsync(string id);
-
         void InsertOne(TDocument document);
 
         Task InsertOneAsync(TDocument document);
@@ -44,9 +42,7 @@ namespace RobotsIntelect_WebApi.Repository.Interfaces
 
         Task DeleteOneAsync(Expression<Func<TDocument, bool>> filterExpression);
 
-        void DeleteById(string id);
-
-        Task DeleteByIdAsync(string id);
+        bool DeleteById(string id);
 
         void DeleteMany(Expression<Func<TDocument, bool>> filterExpression);
 

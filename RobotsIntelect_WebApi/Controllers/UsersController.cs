@@ -176,9 +176,16 @@ namespace RobotsIntelect_WebApi.Controllers
                 return NotFound("Entry not found");
             }
 
-            _userRepository.DeleteById(id);
+            bool deleted = _userRepository.DeleteById(id);
 
-            return Ok(user);
+            if (deleted)
+            {
+                return Ok(user);
+            }
+            else
+            {
+                return NotFound("Entry not found");
+            }
         }
     }
 }

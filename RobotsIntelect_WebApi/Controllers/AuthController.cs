@@ -68,7 +68,7 @@ namespace RobotsIntelect_WebApi.Controllers
         public IActionResult RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var response = _authService.AuthenticateSensor(refreshToken, IpAddress());
+            var response = _authService.RefreshToken(refreshToken, IpAddress());
 
             if (response == null)
                 return Unauthorized(new { message = "Invalid token" });
